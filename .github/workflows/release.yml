@@ -32,7 +32,7 @@ jobs:
 
       # dtolnay/rust-toolchain appelle bash → échoue si WSL/bash absent sur runner Windows.
       - name: Rust stable (rustup local)
-        shell: pwsh
+        shell: powershell
         run: |
           $cargoBin = Join-Path $env:USERPROFILE ".cargo\bin"
           if (-not (Test-Path (Join-Path $cargoBin "cargo.exe"))) {
