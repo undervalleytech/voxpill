@@ -1,6 +1,6 @@
 [package]
 name = "voxpill"
-version = "0.1.3"
+version = "0.1.4"
 description = "Voxpill — dictée vocale locale (Whisper)"
 authors = ["Voxpill"]
 edition = "2021"
