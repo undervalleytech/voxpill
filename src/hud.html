@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxpill · dictée</title>
+    <link rel="stylesheet" href="./hud.css" />
+  </head>
+  <body>
+    <!-- Espace au-dessus pour le halo (pseudo-elements + blur), comme file-pill-spacer -->
+    <div class="hud-spacer" aria-hidden="true"></div>
+    <div
+      id="hud-pill"
+      class="hud-pill"
+      role="status"
+      aria-live="polite"
+      aria-label="Dictée"
+    >
+      <span class="hud-rec-dot" aria-hidden="true"></span>
+      <div id="wave" class="hud-wave" aria-hidden="true"></div>
+    </div>
+    <script type="module" src="./hud.js"></script>
+  </body>
+</html>

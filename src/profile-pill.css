@@ -1,0 +1,111 @@
+:root {
+  color-scheme: dark;
+  --pill-bg: #0D0D0D;
+  --pill-border: rgba(255, 255, 255, 0.12);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.profile-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+.profile-pill-text-wrap {
+  overflow: hidden;
+  max-width: 280px;
+  min-width: 0;
+}
+
+.profile-pill-text {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.profile-pill-text.enter-from-right {
+  animation: enterFromRight 0.32s ease forwards;
+}
+
+.profile-pill-text.enter-from-left {
+  animation: enterFromLeft 0.32s ease forwards;
+}
+
+.profile-pill-text.enter-fade {
+  animation: enterFade 0.22s ease forwards;
+}
+
+@keyframes enterFromRight {
+  from {
+    transform: translateX(14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes enterFromLeft {
+  from {
+    transform: translateX(-14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes enterFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-pill-text.enter-from-right,
+  .profile-pill-text.enter-from-left {
+    animation: enterFade 0.2s ease forwards;
+  }
+}

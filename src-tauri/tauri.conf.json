@@ -1,0 +1,109 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Voxpill",
+  "version": "0.1.0",
+  "identifier": "com.vnzbe.voxpill",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Voxpill",
+        "width": 880,
+        "height": 720,
+        "resizable": false,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": false,
+        "backgroundColor": "#00000000",
+        "url": "index.html"
+      },
+      {
+        "label": "rec-hud",
+        "title": "Voxpill",
+        "width": 320,
+        "height": 120,
+        "resizable": false,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": false,
+        "backgroundColor": "#00000000",
+        "url": "hud.html"
+      },
+      {
+        "label": "file-pill",
+        "title": "Voxpill",
+        "width": 500,
+        "height": 360,
+        "resizable": false,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": false,
+        "dragDropEnabled": true,
+        "backgroundColor": "#00000000",
+        "url": "file-pill.html"
+      },
+      {
+        "label": "profile-pill",
+        "title": "Voxpill",
+        "width": 340,
+        "height": 52,
+        "resizable": false,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": false,
+        "backgroundColor": "#00000000",
+        "url": "profile-pill.html"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": true,
+    "targets": [
+      "nsis"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE2NTZENjRGQjNFM0QxMjQKUldRazBlT3pUOVpXcHNoRkZXWWc5SWYrQ3VaOHFjWGp5T2JMam9zcXB2c2huTURHd0FvSkEwWmsK",
+      "endpoints": [
+        "https://github.com/undervalleytech/voxpill/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

@@ -1,0 +1,357 @@
+:root {
+  color-scheme: dark;
+  --font: "Geist", system-ui, "Segoe UI", sans-serif;
+  --fp-bg: #0D0D0D;
+  --fp-border: rgba(255, 255, 255, 0.12);
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+  font-family: var(--font);
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  padding: 0 8px 10px;
+}
+/* Absorbs vertical space so the pill sits at the bottom; menus open upward into this area (cf. profile-pill: small window, only content-sized pill). */
+.file-pill-spacer {
+  flex: 1 1 auto;
+  min-height: 200px;
+  width: 100%;
+  flex-shrink: 1;
+  pointer-events: none;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.file-pill {
+  position: relative;
+  isolation: isolate;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  width: 350px;
+  max-width: min(350px, calc(100% - 8px));
+  min-height: 36px;
+  padding: 8px 14px 8px 10px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: var(--fp-bg);
+  border: 1px solid var(--fp-border);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 12px 40px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  overflow: visible;
+}
+.file-pill::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  z-index: -2;
+  opacity: 0;
+  pointer-events: none;
+  padding: 2px;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 88, 170, 0.8),
+    rgba(126, 135, 255, 0.76),
+    rgba(64, 214, 226, 0.8),
+    rgba(132, 255, 174, 0.72),
+    rgba(255, 220, 118, 0.76),
+    rgba(255, 88, 170, 0.8)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: blur(6px);
+  transition: opacity 0.18s ease;
+}
+.file-pill::after {
+  content: "";
+  position: absolute;
+  inset: -16px;
+  border-radius: inherit;
+  z-index: -3;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(100, 170, 255, 0.38) 0%,
+    rgba(165, 96, 255, 0.34) 32%,
+    rgba(88, 255, 204, 0.3) 58%,
+    rgba(255, 255, 255, 0) 76%
+  );
+  filter: blur(12px);
+  transform: scale(0.98);
+  transition: opacity 0.18s ease;
+}
+.file-pill:hover:not(.is-busy) {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.file-pill:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.file-pill.is-busy {
+  cursor: progress;
+}
+.file-pill.is-drag {
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.file-pill.is-transcribing::before {
+  opacity: 1;
+  animation: file-halo-breathe 1.2s ease-in-out infinite;
+}
+.file-pill.is-transcribing::after {
+  opacity: 0.92;
+  animation: file-glow-breathe 1.2s ease-in-out infinite;
+}
+.file-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.file-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50px;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.file-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.file-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.custom-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.custom-select-trigger:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.custom-select-trigger:focus-visible {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+.custom-select-trigger[aria-expanded="true"] {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+.custom-select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.custom-select-chevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  border-right: 2px solid rgba(255, 255, 255, 0.45);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.45);
+  transform: translateY(-55%) rotate(45deg);
+}
+.custom-select-trigger[aria-expanded="true"] .custom-select-chevron {
+  transform: translateY(-35%) rotate(225deg);
+}
+.custom-select-list {
+  position: absolute;
+  z-index: 200;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 4px);
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(18, 18, 18, 0.80);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(6px);
+  max-height: 196px;
+  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.42) transparent;
+}
+.custom-select-list::-webkit-scrollbar {
+  width: 10px;
+}
+.custom-select-list::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 999px;
+}
+.custom-select-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.42);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.custom-select-list::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.custom-select-list li {
+  padding: 7px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.88);
+  cursor: pointer;
+}
+.custom-select-list li:hover,
+.custom-select-list li.is-highlighted {
+  background: rgba(255, 255, 255, 0.1);
+}
+.custom-select-list li[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.custom-select.is-disabled .custom-select-trigger {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.file-status {
+  margin: 0;
+  padding: 0;
+  width: 0;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.42);
+}
+.file-toast {
+  position: absolute;
+  z-index: 150;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translate(-50%, 8px);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(24, 24, 24, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+.file-toast.show {
+  animation: file-toast-pop 1.5s ease forwards;
+}
+@keyframes file-halo-breathe {
+  0% {
+    opacity: 0.82;
+    filter: blur(4px);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(7px);
+  }
+  100% {
+    opacity: 0.82;
+    filter: blur(4px);
+  }
+}
+@keyframes file-glow-breathe {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.98);
+    filter: blur(10px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+    filter: blur(15px);
+  }
+  100% {
+    opacity: 0.55;
+    transform: scale(0.98);
+    filter: blur(10px);
+  }
+}
+@keyframes file-toast-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 8px) scale(0.98);
+  }
+  16% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -4px) scale(0.99);
+  }
+}

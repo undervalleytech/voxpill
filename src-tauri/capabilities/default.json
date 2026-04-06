@@ -1,0 +1,37 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Voxpill permissions",
+  "windows": [
+    "main",
+    "rec-hud",
+    "file-pill",
+    "profile-pill"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-set-position",
+    "core:window:allow-set-size",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-always-on-top",
+    "core:window:allow-start-dragging",
+    "core:event:allow-listen",
+    "core:event:allow-emit",
+    "core:tray:default",
+    "core:image:default",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+    "global-shortcut:allow-is-registered",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled",
+    "clipboard:allow-read-text",
+    "clipboard:allow-write-text",
+    "dialog:default",
+    "opener:default",
+    "updater:default",
+    "process:default"
+  ]
+}

@@ -1,0 +1,45 @@
+[package]
+name = "voxpill"
+version = "0.1.0"
+description = "Voxpill — dictée vocale locale (Whisper)"
+authors = ["Voxpill"]
+edition = "2021"
+
+[lib]
+name = "voxpill_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+# Accélération GPU Whisper (CUDA). Build sans toolkit : cargo build --no-default-features
+default = ["gpu"]
+gpu = ["whisper-rs/cuda"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+whisper-rs = { version = "0.16", default-features = false }
+cpal = "0.17.3"
+enigo = "0.6.1"
+sysinfo = "0.38.4"
+tokio = { version = "1.50.0", features = ["rt-multi-thread", "macros", "fs", "io-util", "sync", "time"] }
+reqwest = { version = "0.13.2", features = ["rustls", "stream", "blocking", "json", "multipart"] }
+futures-util = "0.3.32"
+urlencoding = "2.1"
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-clipboard = "2"
+tauri-plugin-autostart = "2"
+thiserror = "2.0.18"
+chrono = "0.4.44"
+uuid = { version = "1", features = ["v4", "serde"] }
+symphonia = { version = "0.5.4", default-features = false, features = ["aac", "flac", "isomp4", "mp3", "ogg", "pcm", "wav", "alac", "vorbis"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winuser"] }

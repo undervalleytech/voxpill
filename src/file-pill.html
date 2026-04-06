@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voxpill · file</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./file-pill.css" />
+  </head>
+  <body>
+    <!-- Flexible top area: room for dropdowns (open upward) + toast + halo; same idea as a tall HUD canvas -->
+    <div class="file-pill-spacer" aria-hidden="true"></div>
+    <div
+      id="file-pill"
+      class="file-pill"
+      role="button"
+      tabindex="0"
+      aria-label="Choose or drop an audio file to transcribe"
+    >
+      <div class="file-row">
+        <div class="file-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 4v10m0 0l-4-4m4 4l4-4M5 16.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div class="file-select-wrap">
+          <span class="sr-only">Spoken language in the audio (transcription hint)</span>
+          <div class="custom-select" id="lang-out-select" data-value="auto">
+            <button
+              id="lang-out-trigger"
+              type="button"
+              class="custom-select-trigger"
+              aria-expanded="false"
+              aria-haspopup="listbox"
+              title="Language spoken in the audio. Auto = engine detects the language."
+            >
+              <span id="lang-out-value" class="custom-select-value">Auto</span>
+              <span class="custom-select-chevron" aria-hidden="true"></span>
+            </button>
+            <ul id="lang-out-list" class="custom-select-list" role="listbox" hidden></ul>
+          </div>
+        </div>
+        <div class="file-select-wrap">
+          <span class="sr-only">Translate transcribed text to</span>
+          <div class="custom-select" id="translate-out-select" data-value="">
+            <button
+              id="translate-out-trigger"
+              type="button"
+              class="custom-select-trigger"
+              aria-expanded="false"
+              aria-haspopup="listbox"
+              title="Output language for the .txt file. No translation = keep transcribed language."
+            >
+              <span id="translate-out-value" class="custom-select-value">No translation</span>
+              <span class="custom-select-chevron" aria-hidden="true"></span>
+            </button>
+            <ul id="translate-out-list" class="custom-select-list" role="listbox" hidden></ul>
+          </div>
+        </div>
+      </div>
+      <div id="file-toast" class="file-toast" aria-live="polite" aria-atomic="true"></div>
+      <p id="file-status" class="file-status" role="status"></p>
+    </div>
+    <script type="module" src="./file-pill.js"></script>
+  </body>
+</html>

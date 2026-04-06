@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Voxpill</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="spotlight-shell">
+      <header class="head-row" data-tauri-drag-region>
+        <div class="brand">
+          <img class="brand-logo" src="/voxpill_logo.png" alt="" width="28" height="28" decoding="async" />
+          <div>
+            <div class="brand-title-row">
+              <span class="brand-title">Voxpill</span>
+              <span class="alpha-pill" title="Early test version">Alpha</span>
+            </div>
+          </div>
+        </div>
+        <button id="close-settings-btn" class="close-settings-btn" type="button" aria-label="Close settings" title="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </header>
+      <div id="spotlight-scroll" class="spotlight-scroll">
+        <section class="settings-shell">
+          <aside class="settings-nav" aria-label="Settings navigation">
+            <button type="button" class="settings-nav-item is-active" data-panel="panel-info">
+              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg></span>
+              <span>Information</span>
+            </button>
+            <button type="button" class="settings-nav-item" data-panel="panel-basic">
+              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></span>
+              <span>Basic</span>
+            </button>
+            <button type="button" class="settings-nav-item" data-panel="panel-profile">
+              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="4" x2="14" y2="4"></line><line x1="10" y1="4" x2="3" y2="4"></line><line x1="21" y1="12" x2="12" y2="12"></line><line x1="8" y1="12" x2="3" y2="12"></line><line x1="21" y1="20" x2="16" y2="20"></line><line x1="12" y1="20" x2="3" y2="20"></line><line x1="14" y1="2" x2="14" y2="6"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="16" y1="18" x2="16" y2="22"></line></svg></span>
+              <span>Profile</span>
+            </button>
+            <button type="button" class="settings-nav-item" data-panel="panel-model">
+              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg></span>
+              <span>Model</span>
+            </button>
+            <button type="button" class="settings-nav-item" data-panel="panel-ai">
+              <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg></span>
+              <span>AI</span>
+            </button>
+          </aside>
+          <div class="settings-content">
+            <article id="panel-basic" class="settings-panel">
+              <div class="settings-card">
+            <div class="settings-card-head">
+              <h2 class="settings-card-title">Basic</h2>
+              <p class="settings-card-sub">Everyday settings for dictation.</p>
+            </div>
+            <div class="field">
+              <span>Dictation Language</span>
+              <div class="custom-select" id="custom-lang" data-value="fr">
+                <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                  <span class="custom-select-value">French</span>
+                  <span class="custom-select-chevron" aria-hidden="true"></span>
+                </button>
+                <ul class="custom-select-list" role="listbox" hidden></ul>
+              </div>
+            </div>
+            <div class="field">
+              <span>Output</span>
+              <div class="custom-select" id="custom-insert" data-value="paste">
+                <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                  <span class="custom-select-value">Paste into active app (Ctrl+V)</span>
+                  <span class="custom-select-chevron" aria-hidden="true"></span>
+                </button>
+                <ul class="custom-select-list" role="listbox" hidden>
+                  <li role="option" data-value="paste">Paste into active app (Ctrl+V)</li>
+                  <li role="option" data-value="clipboard">Clipboard only</li>
+                </ul>
+              </div>
+            </div>
+            <div class="field">
+              <span>Push-to-talk Shortcut</span>
+              <button type="button" id="ptt-shortcut-btn" class="shortcut-capture-btn">Ctrl+Space</button>
+            </div>
+            <div class="field">
+              <span>Transcribe File Shortcut</span>
+              <button type="button" id="file-shortcut-btn" class="shortcut-capture-btn">Ctrl+Shift+T</button>
+            </div>
+            <div class="field">
+              <span>AI Assist Shortcut</span>
+              <button type="button" id="ai-assist-shortcut-btn" class="shortcut-capture-btn">Ctrl+Alt+Space</button>
+            </div>
+            <div class="field">
+              <span>Cycle AI Profile Shortcut</span>
+              <button type="button" id="cycle-profile-shortcut-btn" class="shortcut-capture-btn">Ctrl+Alt+Shift+P</button>
+            </div>
+            <p class="input-help">Press a button, then press your shortcut. Esc cancels capture.</p>
+            <div class="field">
+              <span>Status Sounds</span>
+              <label class="toggle-row">
+                <input type="checkbox" id="chk-status-sounds" />
+                <span class="toggle-label">Play start/stop/error sounds</span>
+              </label>
+            </div>
+              </div>
+            </article>
+
+            <article id="panel-info" class="settings-panel is-active">
+              <div class="settings-card">
+                <div class="settings-card-head">
+                  <h2 class="settings-card-title">System & Shortcuts</h2>
+                  <p class="settings-card-sub">Shortcuts and transcription engine.</p>
+                </div>
+                
+                <div class="field">
+                  <span>Acceleration</span>
+                  <div class="info-right">
+                    <div id="gpu-verify-badge" class="gpu-verify-badge" hidden>GPU Acceleration Active</div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <span>Active Engine</span>
+                  <div id="model-line" class="info-val text-muted"></div>
+                </div>
+
+                <div class="field">
+                  <span>Dictation Shortcut</span>
+                  <div class="kbd-group" id="info-kbd-dictation" aria-live="polite"></div>
+                </div>
+
+                <div class="field">
+                  <span>Transcribe File Shortcut</span>
+                  <div class="kbd-group" id="info-kbd-transcribe-file" aria-live="polite"></div>
+                </div>
+
+                <div class="field">
+                  <span>AI profile shortcut</span>
+                  <div class="kbd-group" id="info-kbd-cycle-profile" aria-live="polite"></div>
+                </div>
+
+                <div class="field">
+                  <span>AI assist shortcut</span>
+                  <div class="kbd-group" id="info-kbd-ai-assist" aria-live="polite"></div>
+                </div>
+
+                <div class="field">
+                  <span>Updates</span>
+                  <div class="info-right update-line">
+                    <span id="app-version-label" class="info-val" aria-live="polite"></span>
+                    <button type="button" id="btn-check-updates" class="btn btn-primary btn-check-updates">
+                      Check for updates
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article id="panel-profile" class="settings-panel">
+              <div class="settings-card settings-card-profile">
+                <div class="settings-card-head">
+                  <h2 class="settings-card-title">Profile</h2>
+                  <p class="settings-card-sub">Dictation profiles.</p>
+                </div>
+                <div class="profile-panel-body">
+                  <div class="field field-profile-picker">
+                    <span>Profile</span>
+                    <div class="reform-profile-picker-row">
+                      <div class="custom-select reform-profile-custom-select" id="custom-reformulation-active-profile" data-value="1">
+                        <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                          <span class="custom-select-value">Profile 1</span>
+                          <span class="custom-select-chevron" aria-hidden="true"></span>
+                        </button>
+                        <ul class="custom-select-list custom-select-list--reform-profiles" role="listbox" hidden>
+                          <li role="option" data-value="1">Profile 1</li>
+                          <li role="option" data-value="2">Profile 2</li>
+                          <li role="option" data-value="3">Profile 3</li>
+                        </ul>
+                      </div>
+                      <button type="button" id="btn-add-reform-profile" class="reform-add-profile-btn" title="Add another profile">+ Add profile</button>
+                    </div>
+                  </div>
+                  <div class="reform-profiles" id="reform-profiles">
+                  <div class="reform-profile-block is-visible" data-profile="1" data-profile-id="">
+                    <div class="field">
+                      <span>Profile name</span>
+                      <input type="text" id="reform-p1-name" class="reform-text-input" spellcheck="false" placeholder="e.g. Cursor dev" />
+                    </div>
+                    <div class="field">
+                      <span>Decoding profile</span>
+                      <div class="custom-select" id="custom-reform-p1-decode" data-value="balanced">
+                        <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                          <span class="custom-select-value">Balanced</span>
+                          <span class="custom-select-chevron" aria-hidden="true"></span>
+                        </button>
+                        <ul class="custom-select-list" role="listbox" hidden>
+                          <li role="option" data-value="fast">Fast</li>
+                          <li role="option" data-value="balanced">Balanced</li>
+                          <li role="option" data-value="accurate">Accurate</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span>Translation</span>
+                      <label class="toggle-row">
+                        <input type="checkbox" id="chk-reform-p1-translate" />
+                        <span class="toggle-label">Translate after dictation</span>
+                      </label>
+                    </div>
+                    <div class="field">
+                      <span>Target language</span>
+                      <div class="custom-select" id="custom-reform-p1-translate-target" data-value="en">
+                        <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                          <span class="custom-select-value">English</span>
+                          <span class="custom-select-chevron" aria-hidden="true"></span>
+                        </button>
+                        <ul class="custom-select-list reform-profile-translate-list" role="listbox" hidden></ul>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span id="label-reform-p1-reformulation">Enable AI reformulation</span>
+                      <label class="toggle-row">
+                        <input type="checkbox" id="chk-reform-p1-reformulation" class="reform-reformulation-chk" aria-labelledby="label-reform-p1-reformulation" />
+                      </label>
+                    </div>
+                    <div class="reform-llm-fields">
+                    <div class="field">
+                      <span>Model</span>
+                      <input type="text" id="reform-p1-model" class="reform-text-input" spellcheck="false" placeholder="e.g. llama-3.1-8b-instant" />
+                    </div>
+                    <div class="field field-stack">
+                      <span>Prompt</span>
+                      <div class="reform-prompt-wrap">
+                        <textarea id="reform-p1-prompt" class="reform-textarea" rows="8" spellcheck="false"></textarea>
+                        <button type="button" class="reform-prompt-assist-btn" data-profile="1" title="AI assistant for this prompt">Refine prompt</button>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                  <div class="reform-profile-block" data-profile="2" data-profile-id="">
+                    <div class="field">
+                      <span>Profile name</span>
+                      <input type="text" id="reform-p2-name" class="reform-text-input" spellcheck="false" placeholder="e.g. Meeting notes" />
+                    </div>
+                    <div class="field">
+                      <span>Decoding profile</span>
+                      <div class="custom-select" id="custom-reform-p2-decode" data-value="balanced">
+                        <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                          <span class="custom-select-value">Balanced</span>
+                          <span class="custom-select-chevron" aria-hidden="true"></span>
+                        </button>
+                        <ul class="custom-select-list" role="listbox" hidden>
+                          <li role="option" data-value="fast">Fast</li>
+                          <li role="option" data-value="balanced">Balanced</li>
+                          <li role="option" data-value="accurate">Accurate</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span>Translation</span>
+                      <label class="toggle-row">
+                        <input type="checkbox" id="chk-reform-p2-translate" />
+                        <span class="toggle-label">Translate after dictation</span>
+                      </label>
+                    </div>
+                    <div class="field">
+                      <span>Target language</span>
+                      <div class="custom-select" id="custom-reform-p2-translate-target" data-value="en">
+                        <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                          <span class="custom-select-value">English</span>
+                          <span class="custom-select-chevron" aria-hidden="true"></span>
+                        </button>
+                        <ul class="custom-select-list reform-profile-translate-list" role="listbox" hidden></ul>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span id="label-reform-p2-reformulation">Enable AI reformulation</span>
+                      <label class="toggle-row">
+                        <input type="checkbox" id="chk-reform-p2-reformulation" class="reform-reformulation-chk" aria-labelledby="label-reform-p2-reformulation" />
+                      </label>
+                    </div>
+                    <div class="reform-llm-fields">
+                    <div class="field">
+                      <span>Model</span>
+                      <input type="text" id="reform-p2-model" class="reform-text-input" spellcheck="false" placeholder="e.g. llama-3.1-8b-instant" />
+                    </div>
+                    <div class="field field-stack">
+                      <span>Prompt</span>
+                      <div class="reform-prompt-wrap">
+                        <textarea id="reform-p2-prompt" class="reform-textarea" rows="8" spellcheck="false"></textarea>
+                        <button type="button" class="reform-prompt-assist-btn" data-profile="2" title="AI assistant for this prompt">Refine prompt</button>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                  <div class="reform-profile-block" data-profile="3" data-profile-id="">
+                    <div class="field">
+                      <span>Profile name</span>
+                      <input type="text" id="reform-p3-name" class="reform-text-input" spellcheck="false" placeholder="e.g. General writing" />
+                    </div>
+                    <div class="field">
+                      <span>Decoding profile</span>
+                      <div class="custom-select" id="custom-reform-p3-decode" data-value="balanced">
+                        <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                          <span class="custom-select-value">Balanced</span>
+                          <span class="custom-select-chevron" aria-hidden="true"></span>
+                        </button>
+                        <ul class="custom-select-list" role="listbox" hidden>
+                          <li role="option" data-value="fast">Fast</li>
+                          <li role="option" data-value="balanced">Balanced</li>
+                          <li role="option" data-value="accurate">Accurate</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span>Translation</span>
+                      <label class="toggle-row">
+                        <input type="checkbox" id="chk-reform-p3-translate" />
+                        <span class="toggle-label">Translate after dictation</span>
+                      </label>
+                    </div>
+                    <div class="field">
+                      <span>Target language</span>
+                      <div class="custom-select" id="custom-reform-p3-translate-target" data-value="en">
+                        <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                          <span class="custom-select-value">English</span>
+                          <span class="custom-select-chevron" aria-hidden="true"></span>
+                        </button>
+                        <ul class="custom-select-list reform-profile-translate-list" role="listbox" hidden></ul>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span id="label-reform-p3-reformulation">Enable AI reformulation</span>
+                      <label class="toggle-row">
+                        <input type="checkbox" id="chk-reform-p3-reformulation" class="reform-reformulation-chk" aria-labelledby="label-reform-p3-reformulation" />
+                      </label>
+                    </div>
+                    <div class="reform-llm-fields">
+                    <div class="field">
+                      <span>Model</span>
+                      <input type="text" id="reform-p3-model" class="reform-text-input" spellcheck="false" placeholder="e.g. llama-3.1-8b-instant" />
+                    </div>
+                    <div class="field field-stack">
+                      <span>Prompt</span>
+                      <div class="reform-prompt-wrap">
+                        <textarea id="reform-p3-prompt" class="reform-textarea" rows="8" spellcheck="false"></textarea>
+                        <button type="button" class="reform-prompt-assist-btn" data-profile="3" title="AI assistant for this prompt">Refine prompt</button>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article id="panel-ai" class="settings-panel">
+              <div class="settings-card settings-card-ai">
+                <div class="settings-card-head">
+                  <h2 class="settings-card-title">Artificial intelligence</h2>
+                  <p class="settings-card-sub">Optional API for AI reformulation.</p>
+                </div>
+                <details class="ai-setup" open>
+                  <summary>AI setup (provider + API key)</summary>
+                  <div class="field">
+                    <span>Provider</span>
+                    <div class="custom-select" id="custom-reformulation-provider" data-value="groq">
+                      <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                        <span class="custom-select-value">Groq</span>
+                        <span class="custom-select-chevron" aria-hidden="true"></span>
+                      </button>
+                      <ul class="custom-select-list" role="listbox" hidden>
+                        <li role="option" data-value="groq">Groq</li>
+                        <li role="option" data-value="openrouter">OpenRouter</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="field field-api-key-row">
+                    <span>API key</span>
+                    <div class="reform-api-key-row">
+                      <input type="password" id="reform-api-key" class="reform-api-key-input" autocomplete="off" placeholder="Optional — paste your key" />
+                      <button type="button" id="btn-reform-api-key-toggle" class="reform-api-key-toggle" title="Show/hide key">Show</button>
+                    </div>
+                  </div>
+                  <p class="input-help reform-key-links reform-api-key-hint">
+                    Get a key: <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">Groq</a> · <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">OpenRouter</a>
+                  </p>
+                </details>
+                <details class="ai-setup">
+                  <summary>AI assistant (voice requests)</summary>
+                  <div class="field field-assist-model">
+                    <span>Model</span>
+                    <input
+                      type="text"
+                      id="reform-assist-model"
+                      class="reform-text-input"
+                      spellcheck="false"
+                      placeholder="Empty: use active profile model"
+                    />
+                  </div>
+                </details>
+              </div>
+            </article>
+
+            <article id="panel-model" class="settings-panel">
+              <div class="settings-card settings-card-model">
+            <div class="settings-card-head">
+              <h2 class="settings-card-title">Model</h2>
+              <p class="settings-card-sub">Choose local Whisper or Cloud.</p>
+            </div>
+            <div class="field">
+              <span>Transcription mode</span>
+              <div class="custom-select" id="custom-stt-mode" data-value="local">
+                <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                  <span class="custom-select-value">Local Whisper</span>
+                  <span class="custom-select-chevron" aria-hidden="true"></span>
+                </button>
+                <ul class="custom-select-list" role="listbox" hidden>
+                  <li role="option" data-value="local">Local Whisper</li>
+                  <li role="option" data-value="cloud-groq">Cloud Groq</li>
+                </ul>
+              </div>
+            </div>
+            <details class="ai-setup" open>
+              <summary>Cloud STT (Groq)</summary>
+              <div class="field stt-cloud-field" id="stt-cloud-model-field">
+                <span class="stt-cloud-label">
+                  <span class="stt-cloud-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M7 18h10a4 4 0 0 0 .8-7.92A5.5 5.5 0 0 0 7.3 8.2 3.8 3.8 0 0 0 7 18Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                  </span>
+                  Cloud model (Groq)
+                </span>
+                <div class="custom-select" id="custom-stt-cloud-model" data-value="whisper-large-v3-turbo">
+                  <button type="button" class="custom-select-trigger" aria-expanded="false" aria-haspopup="listbox">
+                    <span class="custom-select-value">Whisper Large v3 Turbo</span>
+                    <span class="custom-select-chevron" aria-hidden="true"></span>
+                  </button>
+                  <ul class="custom-select-list" role="listbox" hidden>
+                    <li role="option" data-value="whisper-large-v3-turbo">Whisper Large v3 Turbo</li>
+                    <li role="option" data-value="whisper-large-v3">Whisper Large v3</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="field field-api-key-row stt-cloud-field" id="stt-cloud-key-field">
+                <span>Groq STT API key</span>
+                <div class="reform-api-key-row">
+                  <input type="password" id="stt-groq-api-key" class="reform-api-key-input" autocomplete="off" placeholder="Required for Cloud STT mode" />
+                  <button type="button" id="btn-stt-groq-api-key-toggle" class="reform-api-key-toggle" title="Show/hide key">Show</button>
+                </div>
+              </div>
+              <p class="input-help stt-cloud-help" id="stt-cloud-help">
+                Cloud mode uses Groq online transcription. If cloud fails, Voxpill falls back to local Whisper automatically.
+              </p>
+            </details>
+            <div class="field field-local-models-title">
+              <span>Local Whisper models</span>
+            </div>
+            <div class="model-field">
+              <div
+                id="model-rows"
+                class="model-rows"
+                role="radiogroup"
+                aria-label="Whisper model"
+              ></div>
+            </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+      <footer>
+        <div id="window-drag-strip" class="window-drag-strip" aria-label="Move window"></div>
+      </footer>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
