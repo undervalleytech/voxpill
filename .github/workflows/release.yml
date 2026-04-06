@@ -30,8 +30,19 @@ jobs:
           node-version: lts/*
           cache: npm
 
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+      # dtolnay/rust-toolchain appelle bash → échoue si WSL/bash absent sur runner Windows.
+      - name: Rust stable (rustup local)
+        shell: pwsh
+        run: |
+          $cargoBin = Join-Path $env:USERPROFILE ".cargo\bin"
+          if (-not (Test-Path (Join-Path $cargoBin "cargo.exe"))) {
+            Write-Error "Installe Rust via https://rustup.rs (cargo doit être dans $cargoBin) puis relance le workflow."
+            exit 1
+          }
+          $env:Path = "$cargoBin;$env:Path"
+          rustup default stable
+          rustc -V
+          cargo -V
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
