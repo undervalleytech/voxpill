@@ -1,15 +1,27 @@
+# Release Windows avec Whisper CUDA (feature `gpu` par défaut).
+# Nécessite un runner self-hosted Windows sur une machine où sont installés :
+# Node.js LTS, Rust stable, CUDA (compatible whisper-rs), Git, et les deps build MSVC.
+#
+# Enregistrer le PC : GitHub → repo → Settings → Actions → Runners → New self-hosted runner
+# Choisir Windows, suivre les commandes (download + config + run.cmd).
+# Tant que run.cmd tourne, les jobs "Release" s’exécutent sur cette machine.
+#
+# Alternative sans runner allumé : déclencher manuellement ce workflow (workflow_dispatch)
+# depuis l’onglet Actions une fois le runner en ligne.
+
 name: Release
 
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 jobs:
   publish:
     permissions:
       contents: write
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows]
     steps:
       - uses: actions/checkout@v4
 
@@ -37,9 +49,7 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: "Voxpill v__VERSION__"
-          releaseBody: "Windows installer and updater metadata (latest.json)."
+          releaseBody: "Windows installer (Whisper CUDA si GPU NVIDIA) + updater (latest.json)."
           releaseDraft: false
           prerelease: false
-          # Flags Cargo : tout ce qui suit `--` est transmis à `cargo build` (Whisper sans CUDA en CI).
-          args: "-- --no-default-features"
           updaterJsonPreferNsis: true
