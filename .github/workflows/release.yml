@@ -40,5 +40,6 @@ jobs:
           releaseBody: "Windows installer and updater metadata (latest.json)."
           releaseDraft: false
           prerelease: false
-          args: --no-default-features
+          # Flags Cargo : tout ce qui suit `--` est transmis à `cargo build` (Whisper sans CUDA en CI).
+          args: "-- --no-default-features"
           updaterJsonPreferNsis: true
