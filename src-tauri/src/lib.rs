@@ -1018,21 +1018,33 @@ fn load_whisper_if_needed(app: &tauri::AppHandle, managed: &Arc<Managed>) -> Res
     if !path.exists() {
         return Err("Modèle absent — téléchargez-le depuis l'app.".to_string());
     }
-    let use_gpu = whisper_should_use_gpu();
+    let want_gpu = whisper_should_use_gpu();
     let mut w = managed.whisper.lock().map_err(|e| e.to_string())?;
     let mut lp = managed.loaded_model_key.lock().map_err(|e| e.to_string())?;
     if let Some((ref p, g)) = lp.as_ref() {
-        if w.is_some() && p == &path && *g == use_gpu {
+        if w.is_some() && p == &path && *g == want_gpu {
             return Ok(());
         }
     }
-    let ctx = whisper_engine::load_context(&path, use_gpu)?;
+    let (ctx, used_gpu) = if want_gpu {
+        match whisper_engine::load_context(&path, true) {
+            Ok(ctx) => (ctx, true),
+            Err(e) => {
+                eprintln!(
+                    "[Voxpill] Whisper GPU indisponible ({e}) — repli CPU (pilote / runtime CUDA)."
+                );
+                (whisper_engine::load_context(&path, false)?, false)
+            }
+        }
+    } else {
+        (whisper_engine::load_context(&path, false)?, false)
+    };
     eprintln!(
         "[Voxpill] Modèle Whisper chargé — {}",
-        if use_gpu { "GPU (CUDA)" } else { "CPU" }
+        if used_gpu { "GPU (CUDA)" } else { "CPU" }
     );
     *w = Some(ctx);
-    *lp = Some((path, use_gpu));
+    *lp = Some((path, used_gpu));
     Ok(())
 }
 

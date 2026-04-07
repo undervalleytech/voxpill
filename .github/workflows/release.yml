@@ -2,6 +2,7 @@
 # Nécessite un runner self-hosted Windows sur une machine où sont installés :
 # Node.js LTS, CUDA (compatible whisper-rs), Git, et les deps build MSVC.
 # Rust : une étape setup-rust-toolchain ajoute cargo au PATH (réutilise rustup local ou installe stable si absent).
+# CUDA : définir CUDA_PATH sur le runner (Toolkit NVIDIA) — build.rs copie les DLL runtime dans cuda-redist pour le NSIS.
 #
 # Enregistrer le PC : GitHub → repo → Settings → Actions → Runners → New self-hosted runner
 # Choisir Windows, suivre les commandes (download + config + run.cmd).
@@ -52,6 +53,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
+          projectPath: src-tauri
+          args: --config cuda-bundle.json
           tagName: v__VERSION__
           releaseName: "Voxpill v__VERSION__"
           releaseBody: "Windows installer (Whisper CUDA si GPU NVIDIA) + updater (latest.json)."

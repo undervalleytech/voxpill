@@ -1,7 +1,7 @@
 {
   "name": "voxpill",
   "private": true,
-  "version": "0.1.6",
+  "version": "0.1.7",
   "type": "module",
   "description": "Voxpill \u2014 dict\u00e9e vocale locale",
   "scripts": {
@@ -9,7 +9,7 @@
     "build": "vite build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "vite build && tauri build"
+    "tauri:build": "vite build && tauri build --config src-tauri/cuda-bundle.json"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
