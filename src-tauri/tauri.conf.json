@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Voxpill",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "identifier": "com.vnzbe.voxpill",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -91,7 +91,8 @@
     ],
     "windows": {
       "nsis": {
-        "installerIcon": "icons/icon.ico"
+        "installerIcon": "icons/icon.ico",
+        "installMode": "currentUser"
       }
     }
   },
