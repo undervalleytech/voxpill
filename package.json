@@ -1,7 +1,7 @@
 {
   "name": "voxpill",
   "private": true,
-  "version": "0.1.7",
+  "version": "0.1.8",
   "type": "module",
   "description": "Voxpill \u2014 dict\u00e9e vocale locale",
   "scripts": {
