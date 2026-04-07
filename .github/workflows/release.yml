@@ -1,6 +1,7 @@
 # Release Windows avec Whisper CUDA (feature `gpu` par défaut).
 # Nécessite un runner self-hosted Windows sur une machine où sont installés :
-# Node.js LTS, Rust stable, CUDA (compatible whisper-rs), Git, et les deps build MSVC.
+# Node.js LTS, CUDA (compatible whisper-rs), Git, et les deps build MSVC.
+# Rust : une étape setup-rust-toolchain ajoute cargo au PATH (réutilise rustup local ou installe stable si absent).
 #
 # Enregistrer le PC : GitHub → repo → Settings → Actions → Runners → New self-hosted runner
 # Choisir Windows, suivre les commandes (download + config + run.cmd).
@@ -30,19 +31,12 @@ jobs:
           node-version: lts/*
           cache: npm
 
-      # dtolnay/rust-toolchain appelle bash → échoue si WSL/bash absent sur runner Windows.
-      - name: Rust stable (rustup local)
-        shell: powershell
-        run: |
-          $cargoBin = Join-Path $env:USERPROFILE ".cargo\bin"
-          if (-not (Test-Path (Join-Path $cargoBin "cargo.exe"))) {
-            Write-Error "Installe Rust via https://rustup.rs (cargo doit être dans $cargoBin) puis relance le workflow."
-            exit 1
-          }
-          $env:Path = "$cargoBin;$env:Path"
-          rustup default stable
-          rustc -V
-          cargo -V
+      # Ne pas utiliser dtolnay/rust-toolchain ici : il invoque bash (souvent absent sur runner Windows pur).
+      # Cette action fonctionne en PowerShell : utilise %USERPROFILE%\.cargo\bin si présent, sinon installe rustup/stable.
+      - name: Rust stable
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
