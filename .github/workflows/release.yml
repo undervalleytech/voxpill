@@ -33,21 +33,22 @@ jobs:
           cache: npm
 
       # Ni dtolnay/rust-toolchain ni actions-rust-lang/setup-rust-toolchain : ils peuvent invoquer bash (WSL/Git).
-      - name: Rust stable (PowerShell, sans bash)
+      # ASCII-only strings in run: UTF-8 special chars break PowerShell 5.1 when Actions writes the temp .ps1.
+      - name: Rust stable (PowerShell, no bash)
         shell: powershell
         run: |
-          $cargoBin = Join-Path $env:USERPROFILE ".cargo\bin"
-          $env:Path = "$cargoBin;$env:Path"
+          $cargoBin = Join-Path $env:USERPROFILE '.cargo\bin'
+          $env:Path = $cargoBin + ';' + $env:Path
           if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
-            Write-Host "cargo absent — installation rustup (rustup-init.exe)…"
-            $tmp = Join-Path $env:TEMP "rustup-init.exe"
-            Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile $tmp -UseBasicParsing
+            Write-Host 'cargo not found; installing rustup (rustup-init.exe)...'
+            $tmp = Join-Path $env:TEMP 'rustup-init.exe'
+            Invoke-WebRequest -Uri 'https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe' -OutFile $tmp -UseBasicParsing
             & $tmp -y --default-toolchain stable
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            $env:Path = "$cargoBin;$env:Path"
+            $env:Path = $cargoBin + ';' + $env:Path
           }
           if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
-            Write-Error "cargo introuvable après installation. Vérifie %USERPROFILE%\.cargo\bin et relance."
+            Write-Error 'cargo still missing after install. Check USERPROFILE\.cargo\bin on the runner account.'
             exit 1
           }
           rustup default stable
