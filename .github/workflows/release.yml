@@ -1,7 +1,7 @@
 # Release Windows avec Whisper CUDA (feature `gpu` par défaut).
 # Nécessite un runner self-hosted Windows sur une machine où sont installés :
 # Node.js LTS, CUDA (compatible whisper-rs), Git, et les deps build MSVC.
-# Rust : une étape setup-rust-toolchain ajoute cargo au PATH (réutilise rustup local ou installe stable si absent).
+# Rust : étape PowerShell uniquement (pas d’action qui appelle bash/WSL — souvent absent sur runner Windows pur).
 # CUDA : définir CUDA_PATH sur le runner (Toolkit NVIDIA) — build.rs copie les DLL runtime dans cuda-redist pour le NSIS.
 #
 # Enregistrer le PC : GitHub → repo → Settings → Actions → Runners → New self-hosted runner
@@ -32,12 +32,28 @@ jobs:
           node-version: lts/*
           cache: npm
 
-      # Ne pas utiliser dtolnay/rust-toolchain ici : il invoque bash (souvent absent sur runner Windows pur).
-      # Cette action fonctionne en PowerShell : utilise %USERPROFILE%\.cargo\bin si présent, sinon installe rustup/stable.
-      - name: Rust stable
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: stable
+      # Ni dtolnay/rust-toolchain ni actions-rust-lang/setup-rust-toolchain : ils peuvent invoquer bash (WSL/Git).
+      - name: Rust stable (PowerShell, sans bash)
+        shell: powershell
+        run: |
+          $cargoBin = Join-Path $env:USERPROFILE ".cargo\bin"
+          $env:Path = "$cargoBin;$env:Path"
+          if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
+            Write-Host "cargo absent — installation rustup (rustup-init.exe)…"
+            $tmp = Join-Path $env:TEMP "rustup-init.exe"
+            Invoke-WebRequest -Uri "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe" -OutFile $tmp -UseBasicParsing
+            & $tmp -y --default-toolchain stable
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $env:Path = "$cargoBin;$env:Path"
+          }
+          if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
+            Write-Error "cargo introuvable après installation. Vérifie %USERPROFILE%\.cargo\bin et relance."
+            exit 1
+          }
+          rustup default stable
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          rustc -V
+          cargo -V
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
