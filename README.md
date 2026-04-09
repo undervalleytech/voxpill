@@ -23,7 +23,7 @@ npm run tauri:build
 
 Installeur : `src-tauri\target\release\bundle\nsis\Voxpill_<version>_x64-setup.exe`
 
-**Build avec GPU (défaut)** : le script `build.rs` copie les DLL runtime CUDA (`cudart`, `cublas`, `cublasLt`, `nvrtc`, `cudnn*`) depuis `%CUDA_PATH%\bin` vers `src-tauri/cuda-redist/` ; le bundle NSIS les installe **à côté de l’exe** pour que l’app démarre sans installer le CUDA Toolkit sur le PC cible. Il faut le **CUDA Toolkit** (même version que celle utilisée pour compiler) sur la machine qui lance `npm run tauri:build` ou le runner CI (`CUDA_PATH`).
+**Build avec GPU (défaut)** : le script `build.rs` copie les DLL runtime CUDA (`cudart`, `cublas`, `cublasLt`, `nvrtc`, `cudnn*`) depuis `%CUDA_PATH%\bin` vers `src-tauri/cuda-redist/` ; le bundle NSIS les installe dans les ressources de l'app. Au lancement, `cuda_path::prepend_cuda_dll_path` ajoute automatiquement ce dossier au `PATH` pour que le chargeur Windows les trouve. Il faut le **CUDA Toolkit** sur la machine de build / le runner CI (`CUDA_PATH`). Pour un usage portable (sans installeur), conserver **tout** le dossier `cuda-redist/` (pas une DLL seule).
 
 **Build CPU uniquement** : `cargo build --no-default-features` (pas de bundle CUDA). Pour un installeur NSIS sans GPU, adapter la config / ne pas fusionner `cuda-bundle.json`.
 

@@ -1,5 +1,6 @@
 mod audio;
 mod audio_decode;
+mod cuda_path;
 mod foreground;
 mod groq_stt;
 mod hardware;
@@ -2143,6 +2144,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            cuda_path::prepend_cuda_dll_path(app);
             let handle = app.handle().clone();
             let cfg = load_cfg(&handle)?;
             let managed = Arc::new(Managed {
