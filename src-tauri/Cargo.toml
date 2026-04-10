@@ -1,9 +1,11 @@
 [package]
 name = "voxpill"
-version = "0.1.10"
+version = "0.1.11"
 description = "Voxpill — dictée vocale locale (Whisper)"
 authors = ["Voxpill"]
 edition = "2021"
+# Plusieurs binaires dans src/bin/ : cargo run / tauri dev doivent cibler l’app principale.
+default-run = "voxpill"
 
 [lib]
 name = "voxpill_lib"
@@ -43,3 +45,4 @@ tauri-plugin-process = "2"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser"] }
+clipboard-win = "5"

@@ -45,9 +45,23 @@ const PROFILE_PILL_H: f64 = 52.0;
 /// Limite de caractères pour le texte sélectionné envoyé au LLM (mode assist).
 const AI_ASSIST_SELECTED_MAX_CHARS: usize = 48_000;
 /// Pause après `SetForegroundWindow` avant la simulation Ctrl+C (stabilisation du focus).
-const AI_ASSIST_FOCUS_SETTLE_MS: u64 = 100;
-/// Pause après Ctrl+C simulé avant lecture du presse-papiers.
-const AI_ASSIST_POST_COPY_DELAY_MS: u64 = 120;
+const AI_ASSIST_FOCUS_SETTLE_MS: u64 = 260;
+/// Pause après Ctrl+C simulé avant lecture du presse-papiers (1re tentative).
+const AI_ASSIST_POST_COPY_DELAY_MS: u64 = 220;
+/// Pause plus longue après Ctrl+C aux tentatives suivantes (apps lentes / Electron / navigateurs).
+const AI_ASSIST_POST_COPY_RETRY_MS: u64 = 320;
+/// Petite pause entre deux tentatives après re-focus (laisser l’OS livrer le focus).
+const AI_ASSIST_INTER_ATTEMPT_MS: u64 = 90;
+/// Nombre de tentatives dans `capture_selection_loop`.
+const AI_ASSIST_CAPTURE_ATTEMPTS: usize = 3;
+/// Timeout d'attente de la capture dans `run_stop_and_transcribe_job`, dérivé des constantes
+/// ci-dessus pour couvrir le pire cas (toutes les tentatives échouent) + marge confortable.
+const AI_ASSIST_CAPTURE_WAIT_MS: u64 = {
+    let t0 = AI_ASSIST_FOCUS_SETTLE_MS + AI_ASSIST_POST_COPY_DELAY_MS;
+    let tn = AI_ASSIST_INTER_ATTEMPT_MS + AI_ASSIST_FOCUS_SETTLE_MS + AI_ASSIST_POST_COPY_RETRY_MS;
+    let n_retries = (AI_ASSIST_CAPTURE_ATTEMPTS as u64).saturating_sub(1);
+    t0 + tn * n_retries + 500
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -250,8 +264,15 @@ fn default_status_sounds_enabled() -> bool {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum RecordingMode {
     Normal,
-    /// Dictée puis réponse LLM à la consigne (même clé / modèle que le profil actif).
     AiAssist,
+}
+
+/// État de la capture du contexte sélectionné pour l'assistant IA.
+/// Transition : Idle → Capturing → Ready ; Idle est l'état de repos.
+pub(crate) enum AiAssistCapture {
+    Idle,
+    Capturing,
+    Ready(Option<String>),
 }
 
 pub(crate) struct Managed {
@@ -268,7 +289,7 @@ pub(crate) struct Managed {
     /// Mode de la session d’enregistrement en cours (PTT classique vs assistant vocal).
     pub(crate) recording_mode: Mutex<RecordingMode>,
     /// Texte issu de la sélection (Ctrl+C simulé au début d’une session assist), consommé au stop.
-    pub(crate) ai_assist_selected_text: Mutex<Option<String>>,
+    pub(crate) ai_assist_ctx: Mutex<AiAssistCapture>,
     /// Zone interactive file-pill (CSS px relatifs au client webview) pour clic à travers sous Windows.
     pub(crate) file_pill_interact_rect: Mutex<Option<(f64, f64, f64, f64)>>,
     /// Zone interactive rec-hud : uniquement la capsule `#hud-pill` (pas le spacer / halo).
@@ -952,60 +973,100 @@ fn simulate_copy() -> Result<(), String> {
     Ok(())
 }
 
-/// Lit le presse-papiers, simule Ctrl+C, compare avant/après, restaure l’ancien contenu.
-/// Retourne `Some` seulement si le presse-papiers **a changé** après copie (copie réelle).
-/// Si `before == after` (après trim), la copie n’a pas eu d’effet ou la sélection était identique au
-/// presse-papiers : on retourne `None` pour ne pas envoyer un **vieux** presse-papiers (autre app, session précédente).
-fn capture_ai_assist_selection(clipboard: &Clipboard) -> Option<String> {
-    let before = clipboard.read_text().unwrap_or_default();
+/// Lit/écrit le presse-papiers sans dépendre du plugin Tauri (thread-safe pour le worker).
+#[cfg(windows)]
+mod win_clipboard {
+    pub fn read_text() -> String {
+        clipboard_win::get_clipboard_string().unwrap_or_default()
+    }
+    pub fn write_text(s: &str) {
+        let _ = clipboard_win::set_clipboard_string(s);
+    }
+    pub fn sequence_number() -> u32 {
+        use winapi::um::winuser::GetClipboardSequenceNumber;
+        unsafe { GetClipboardSequenceNumber() }
+    }
+}
+
+/// Tentative unique de Ctrl+C : retourne `Some(texte)` si le presse-papiers a changé.
+/// Utilise `GetClipboardSequenceNumber` (Windows) pour détecter une copie réussie même
+/// lorsque le contenu du presse-papiers est identique au snapshot précédent.
+fn try_copy_once(before: &str, focus_hwnd: Option<usize>, settle_ms: u64, post_ms: u64) -> Option<String> {
+    if let Some(hwnd) = focus_hwnd {
+        foreground::try_focus_window(hwnd);
+        std::thread::sleep(Duration::from_millis(settle_ms));
+    }
+    #[cfg(windows)]
+    let seq_before = win_clipboard::sequence_number();
     if simulate_copy().is_err() {
-        eprintln!("[Voxpill] Assist : échec simulation Ctrl+C");
         return None;
     }
-    std::thread::sleep(Duration::from_millis(AI_ASSIST_POST_COPY_DELAY_MS));
-    let mut after = clipboard.read_text().unwrap_or_default();
-    let _ = clipboard.write_text(before.clone());
+    std::thread::sleep(Duration::from_millis(post_ms));
+    #[cfg(windows)]
+    let after = win_clipboard::read_text();
+    #[cfg(not(windows))]
+    let after = String::new();
+    #[cfg(windows)]
+    let seq_after = win_clipboard::sequence_number();
+    #[cfg(windows)]
+    win_clipboard::write_text(before);
+    let after_t = after.trim();
+    if after_t.is_empty() {
+        return None;
+    }
+    #[cfg(windows)]
+    let seq_changed = seq_after != seq_before;
+    #[cfg(not(windows))]
+    let seq_changed = false;
+    if after_t == before.trim() && !seq_changed {
+        return None;
+    }
+    Some(after)
+}
 
-    let mut after_t = after.trim();
-    let before_t = before.trim();
-    if after_t == before_t {
-        std::thread::sleep(Duration::from_millis(40));
-        if simulate_copy().is_ok() {
-            std::thread::sleep(Duration::from_millis(AI_ASSIST_POST_COPY_DELAY_MS));
-            after = clipboard.read_text().unwrap_or_default();
-            let _ = clipboard.write_text(before.clone());
-            after_t = after.trim();
+/// Boucle de capture robuste (jusqu'à `max_attempts` tentatives avec re-focus entre les essais).
+/// Compatible worker thread (pas de plugin Tauri, utilise `win_clipboard`).
+/// `cancelled` est vérifié entre les tentatives pour coopérer avec `do_cancel_recording`.
+fn capture_selection_loop(
+    focus_hwnd: Option<usize>,
+    max_attempts: usize,
+    cancelled: &AtomicBool,
+) -> Option<String> {
+    #[cfg(windows)]
+    let before = win_clipboard::read_text();
+    #[cfg(not(windows))]
+    let before = String::new();
+
+    for attempt in 0..max_attempts {
+        if cancelled.load(Ordering::Acquire) {
+            eprintln!("[Voxpill] Assist capture : annulé entre les tentatives");
+            return None;
+        }
+        let post_ms = if attempt == 0 {
+            AI_ASSIST_POST_COPY_DELAY_MS
+        } else {
+            AI_ASSIST_POST_COPY_RETRY_MS
+        };
+        let settle = if attempt == 0 { AI_ASSIST_FOCUS_SETTLE_MS / 2 } else { AI_ASSIST_FOCUS_SETTLE_MS };
+        if let Some(text) = try_copy_once(&before, focus_hwnd, settle, post_ms) {
+            eprintln!(
+                "[Voxpill] Assist capture : OK (tentative {}, {} car.)",
+                attempt + 1,
+                text.chars().count()
+            );
+            let mut s = text;
+            if s.len() > AI_ASSIST_SELECTED_MAX_CHARS {
+                let mut t = s.chars().take(AI_ASSIST_SELECTED_MAX_CHARS).collect::<String>();
+                t.push_str("\n… [truncated]");
+                s = t;
+            }
+            return Some(s);
+        }
+        if attempt + 1 < max_attempts {
+            std::thread::sleep(Duration::from_millis(AI_ASSIST_INTER_ATTEMPT_MS));
         }
     }
-
-    if after_t.is_empty() {
-        eprintln!(
-            "[Voxpill] Assist sélection : presse-papiers vide après Ctrl+C — pas de contexte (rien à copier ?)"
-        );
-        return None;
-    }
-    if after_t == before_t {
-        eprintln!(
-            "[Voxpill] Assist sélection : presse-papiers inchangé après Ctrl+C — pas de contexte (copie sans effet ou sélection identique au presse-papiers ; évite un faux contexte issu d’une autre session)"
-        );
-        return None;
-    }
-    eprintln!(
-        "[Voxpill] Assist sélection : capture OK (presse-papiers a changé, {} car.)",
-        after.chars().count()
-    );
-    let mut s = after;
-    if s.len() > AI_ASSIST_SELECTED_MAX_CHARS {
-        eprintln!(
-            "[Voxpill] Assist : texte sélectionné tronqué ({} → {} caractères)",
-            s.len(),
-            AI_ASSIST_SELECTED_MAX_CHARS
-        );
-        let mut t = s.chars().take(AI_ASSIST_SELECTED_MAX_CHARS).collect::<String>();
-        t.push_str("\n… [truncated]");
-        s = t;
-    }
-    Some(s)
+    None
 }
 
 fn whisper_should_use_gpu() -> bool {
@@ -1218,7 +1279,7 @@ fn transcribe_pcm_to_text(
 fn do_start_recording(
     managed: &Arc<Managed>,
     app: &tauri::AppHandle,
-    clipboard: &Clipboard,
+    _clipboard: &Clipboard,
     mode: RecordingMode,
 ) -> Result<(), String> {
     if managed
@@ -1232,44 +1293,17 @@ fn do_start_recording(
     if g.is_some() {
         return Ok(());
     }
-    *managed.ai_assist_selected_text.lock().map_err(|e| e.to_string())? = None;
+    *managed.ai_assist_ctx.lock().map_err(|e| e.to_string())? = AiAssistCapture::Idle;
     *managed.recording_mode.lock().map_err(|e| e.to_string())? = mode;
     managed.mic_level.store(0, Ordering::Relaxed);
     managed.recording_active.store(true, Ordering::Release);
 
-    // Fenêtre cible avant ouverture du micro (cpal peut prendre du temps ; le focus peut bouger).
     let focus_hwnd = foreground::capture_foreground_window();
     if let Some(hwnd) = focus_hwnd {
         *managed.paste_target_hwnd.lock().map_err(|e| e.to_string())? = Some(hwnd);
-    } else if mode == RecordingMode::AiAssist {
-        eprintln!(
-            "[Voxpill] Assist : aucune fenêtre au premier plan — Ctrl+C et collage ciblés peuvent échouer"
-        );
     }
 
-    if mode == RecordingMode::AiAssist {
-        if let Some(hwnd) = focus_hwnd {
-            foreground::try_focus_window(hwnd);
-            std::thread::sleep(Duration::from_millis(AI_ASSIST_FOCUS_SETTLE_MS));
-        } else {
-            eprintln!(
-                "[Voxpill] Assist : impossible de restaurer le focus avant Ctrl+C (HWND absent)"
-            );
-        }
-        if let Some(sel) = capture_ai_assist_selection(clipboard) {
-            let n = sel.chars().count();
-            let preview: String = sel.chars().take(160).collect::<String>();
-            let one_line = preview.replace(['\r', '\n'], " ");
-            eprintln!(
-                "[Voxpill] Assist : contexte enregistré pour la session ({n} car.) — aperçu: {one_line}{}",
-                if n > 160 { "…" } else { "" }
-            );
-            *managed.ai_assist_selected_text.lock().map_err(|e| e.to_string())? = Some(sel);
-        } else {
-            eprintln!("[Voxpill] Assist : aucun contexte sélectionné — le LLM ne recevra que la dictée");
-        }
-    }
-
+    // Ouvrir le micro et afficher le HUD immédiatement (avant la capture du contexte).
     let session = match RecordingSession::new(managed.mic_level.clone()) {
         Ok(s) => s,
         Err(e) => {
@@ -1277,10 +1311,8 @@ fn do_start_recording(
             if let Ok(mut m) = managed.recording_mode.lock() {
                 *m = RecordingMode::Normal;
             }
-            if mode == RecordingMode::AiAssist {
-                if let Ok(mut s) = managed.ai_assist_selected_text.lock() {
-                    *s = None;
-                }
+            if let Ok(mut ctx) = managed.ai_assist_ctx.lock() {
+                *ctx = AiAssistCapture::Idle;
             }
             if let Ok(mut h) = managed.paste_target_hwnd.lock() {
                 *h = None;
@@ -1297,6 +1329,47 @@ fn do_start_recording(
     emit_rec_hud_sound_enabled(app, status_sounds_enabled);
     show_rec_hud(app)?;
     emit_rec_hud_phase(app, "recording", mode);
+
+    // Capture du contexte pour AiAssist : tentative rapide synchrone, puis worker async si échec.
+    if mode == RecordingMode::AiAssist {
+        if let Some(sel) = try_copy_once(
+            &{
+                #[cfg(windows)]
+                { win_clipboard::read_text() }
+                #[cfg(not(windows))]
+                { String::new() }
+            },
+            focus_hwnd,
+            AI_ASSIST_FOCUS_SETTLE_MS / 2,
+            AI_ASSIST_POST_COPY_DELAY_MS,
+        ) {
+            eprintln!(
+                "[Voxpill] Assist : contexte capturé (rapide, {} car.)",
+                sel.chars().count()
+            );
+            *managed.ai_assist_ctx.lock().map_err(|e| e.to_string())? =
+                AiAssistCapture::Ready(Some(sel));
+        } else {
+            // Lancer le worker async pour les tentatives robustes.
+            *managed.ai_assist_ctx.lock().map_err(|e| e.to_string())? =
+                AiAssistCapture::Capturing;
+            let m = managed.clone();
+            std::thread::spawn(move || {
+                let result = capture_selection_loop(
+                    focus_hwnd,
+                    AI_ASSIST_CAPTURE_ATTEMPTS,
+                    &m.recording_active,
+                );
+                if let Ok(mut ctx) = m.ai_assist_ctx.lock() {
+                    if matches!(*ctx, AiAssistCapture::Capturing) {
+                        *ctx = AiAssistCapture::Ready(result);
+                    }
+                    // Si plus Capturing (ex: Idle après cancel), ne pas écraser.
+                }
+            });
+        }
+    }
+
     Ok(())
 }
 
@@ -1513,11 +1586,25 @@ fn run_stop_and_transcribe_job(
     let clipboard = app.state::<Clipboard>();
     let run_inner = || -> Result<String, String> {
         let ai_selected = if session_mode == RecordingMode::AiAssist {
-            managed
-                .ai_assist_selected_text
-                .lock()
-                .map_err(|e| e.to_string())?
-                .take()
+            let deadline = std::time::Instant::now() + Duration::from_millis(AI_ASSIST_CAPTURE_WAIT_MS);
+            loop {
+                {
+                    let ctx = managed.ai_assist_ctx.lock().map_err(|e| e.to_string())?;
+                    if !matches!(*ctx, AiAssistCapture::Capturing) {
+                        break;
+                    }
+                }
+                if std::time::Instant::now() >= deadline {
+                    eprintln!("[Voxpill] Assist : timeout attente capture contexte");
+                    break;
+                }
+                std::thread::sleep(Duration::from_millis(20));
+            }
+            let mut ctx = managed.ai_assist_ctx.lock().map_err(|e| e.to_string())?;
+            match std::mem::replace(&mut *ctx, AiAssistCapture::Idle) {
+                AiAssistCapture::Ready(text) => text,
+                _ => None,
+            }
         } else {
             None
         };
@@ -1650,8 +1737,8 @@ fn do_stop_and_transcribe(
             1000.0 * min_samples as f32 / rate as f32,
             rate
         );
-        if let Ok(mut s) = managed.ai_assist_selected_text.lock() {
-            *s = None;
+        if let Ok(mut ctx) = managed.ai_assist_ctx.lock() {
+            *ctx = AiAssistCapture::Idle;
         }
         if let Ok(mut m) = managed.recording_mode.lock() {
             *m = RecordingMode::Normal;
@@ -1687,8 +1774,8 @@ fn do_cancel_recording(managed: &Arc<Managed>, app: &tauri::AppHandle) -> Result
     if g.take().is_none() {
         return Ok(());
     }
-    if let Ok(mut s) = managed.ai_assist_selected_text.lock() {
-        *s = None;
+    if let Ok(mut ctx) = managed.ai_assist_ctx.lock() {
+        *ctx = AiAssistCapture::Idle;
     }
     managed.recording_active.store(false, Ordering::Release);
     managed.mic_level.store(0, Ordering::Relaxed);
@@ -2156,7 +2243,7 @@ pub fn run() {
                 recording_active: Arc::new(AtomicBool::new(false)),
                 paste_target_hwnd: Mutex::new(None),
                 recording_mode: Mutex::new(RecordingMode::Normal),
-                ai_assist_selected_text: Mutex::new(None),
+                ai_assist_ctx: Mutex::new(AiAssistCapture::Idle),
                 file_pill_interact_rect: Mutex::new(None),
                 rec_hud_interact_rect: Mutex::new(None),
                 file_transcribe_cancel: Arc::new(AtomicBool::new(false)),
